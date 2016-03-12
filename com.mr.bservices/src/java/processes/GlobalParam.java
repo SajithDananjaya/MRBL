@@ -15,7 +15,7 @@ import java.util.HashMap;
  *
  * @author Sajith
  */
-public class globalParam {
+public class GlobalParam {
 
     private static final String CONFIG_FILE_PATH = "./configs/config";
     private static boolean paramInitiated = false;
@@ -23,30 +23,26 @@ public class globalParam {
     //Key is the param name, Object is param value 
     private static HashMap<String, String> paramMap;
 
-    private static String lastFMUserName;
-    private static int artistCountPerUser;
-    private static int tagCountPerArtist;
-    private static int postCountPerUser;
-
-    private static String dbName;
-    private static String dbUser;
-    private static String dbPassword;
-
-    private static String baseFBURL;
-    private static String baseLastFMURL;
-
-    private static String logFilePath;
-    private static String artistInfoFilePath;
-    private static String tagInfoFilePath;
-    private static String userInfoFilePath;
-    private static String datSetFilePath;
-
-    private globalParam() {
+    private GlobalParam() {
     }
 
     public static void initParameters() {
         paramMap = new HashMap<>();
-        BufferedReader file = getConfigFile();
+        BufferedReader file = getConfigFile(CONFIG_FILE_PATH);
+        try{
+            String textLine = "";
+            while((textLine = file.readLine()) != null){
+                String[] data = textLine.split(":");
+                paramMap.put(data[0], data[1]);
+            }
+        }catch(IOException e){
+            System.err.println(e.toString());
+        }
+
+    }
+    public static void initParameters(String filePath) {
+        paramMap = new HashMap<>();
+        BufferedReader file = getConfigFile(filePath);
         try{
             String textLine = "";
             while((textLine = file.readLine()) != null){
@@ -59,8 +55,8 @@ public class globalParam {
 
     }
 
-    private static BufferedReader getConfigFile() {
-        File tempFile = new File(CONFIG_FILE_PATH);
+    private static BufferedReader getConfigFile(String filePath) {
+        File tempFile = new File(filePath);
         FileReader fileReader = null;
         try {
             fileReader = new FileReader(tempFile);
@@ -81,91 +77,107 @@ public class globalParam {
      * @return the artistCountPerUser
      */
     public static int getArtistCountPerUser() {
-        return Integer.parseInt(paramMap.get("lastFMUserName"));
+        return Integer.parseInt(paramMap.get("artistCountPerUser"));
     }
 
     /**
      * @return the tagCountPerArtist
      */
     public static int getTagCountPerArtist() {
-        return tagCountPerArtist;
+        return Integer.parseInt(paramMap.get("tagCountPerArtist"));
     }
 
     /**
      * @return the postCountPerUser
      */
     public static int getPostCountPerUser() {
-        return postCountPerUser;
+        return Integer.parseInt(paramMap.get("postCountPerUser"));
     }
 
     /**
      * @return the dbName
      */
     public static String getDbName() {
-        return dbName;
+        return paramMap.get("dbName");
     }
 
     /**
      * @return the dbUser
      */
     public static String getDbUser() {
-        return dbUser;
+        return paramMap.get("dbUser");
     }
 
     /**
      * @return the dbPassword
      */
     public static String getDbPassword() {
-        return dbPassword;
+        return paramMap.get("dbPassword");
     }
 
     /**
      * @return the baseFBURL
      */
     public static String getBaseFBURL() {
-        return baseFBURL;
+        return paramMap.get("baseFBURL");
     }
 
     /**
      * @return the baseLastFMURL
      */
     public static String getBaseLastFMURL() {
-        return baseLastFMURL;
+        return paramMap.get("baseLastFMURL");
     }
-
-    /**
-     * @return the logFilePath
-     */
-    public static String getLogFilePath() {
-        return logFilePath;
-    }
-
+    
     /**
      * @return the artistInfoFilePath
      */
     public static String getArtistInfoFilePath() {
-        return artistInfoFilePath;
+        return paramMap.get("artistInfoFilePath");
     }
 
     /**
      * @return the tagInfoFilePath
      */
     public static String getTagInfoFilePath() {
-        return tagInfoFilePath;
+        return paramMap.get("tagInfoFilePath");
     }
 
     /**
      * @return the userInfoFilePath
      */
     public static String getUserInfoFilePath() {
-        return userInfoFilePath;
+        return paramMap.get("userInfoFilePath");
     }
 
     /**
-     * @return the datSetFilePath
+     * @return the dataSetFilePath
      */
-    public static String getDatSetFilePath() {
-        return datSetFilePath;
+    public static String getDataSetFilePath() {
+        return paramMap.get("dataSetFilePath");
     }
+    
+    /**
+     * @return the logFilePath
+     */
+    public static String getLogFilePath() {
+        return paramMap.get("logFilePath");
+    }
+    
+    /**
+     * @return the lastFMAPIKey
+     */
+    public static String getLastFMAPIKey() {
+        return paramMap.get("lastFMAPIKey");
+    }
+    
+    /**
+     * @return the initialUserCount
+     */
+    public static int getInitialUserCount() {
+        return Integer.parseInt(paramMap.get("initialUserCount"));
+    }
+    
+    
 
 }
