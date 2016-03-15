@@ -5,6 +5,7 @@
  */
 package dataHandlers;
 
+import java.io.BufferedReader;
 import processes.GlobalParam;
 import processes.LogFactory;
 
@@ -20,6 +21,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import org.xml.sax.SAXException;
 import java.net.MalformedURLException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -36,29 +38,27 @@ import javax.xml.transform.stream.StreamResult;
  */
 public class AccessLastFM {
 
-    private static final String BASE_URL ="https://" + GlobalParam.getBaseLastFMURL();
+    private static final String BASE_URL = "https://" + GlobalParam.getBaseLastFMURL();
     private static final String ACCESS_TOKEN = GlobalParam.getLastFMAPIKey();
     private static final Logger LOGGER = LogFactory.getNewLogger(AccessLastFM.class.getName());
 
     public static URL getURL(String methodParam) {
-        LOGGER.log(Level.WARNING,"Response might be broken or unavailable");
+        LOGGER.log(Level.WARNING, "Response might be broken or unavailable");
         String url = BASE_URL + methodParam + "&api_key=" + ACCESS_TOKEN;
         URL tempURL = null;
         try {
             tempURL = new URL(url);
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE,"URL is unreachable or broken",e);
+            LOGGER.log(Level.SEVERE, "URL is unreachable or broken", e);
         }
         return tempURL;
     }
-    
-    public static List<String> extractPattern(String regPattern, Document responseXML, int tagNameLength) {
+
+    public static List<String> extractPattern(String regPattern, String responsString, int tagNameLength) {
         List<String> matchList = new ArrayList<>();
 
-        String tempXML = docToString(responseXML);
-
         Pattern searchPattern = Pattern.compile(regPattern);
-        Matcher patternMatcher = searchPattern.matcher(tempXML);
+        Matcher patternMatcher = searchPattern.matcher(responsString);
 
         while (patternMatcher.find()) {
             String item = patternMatcher.group();
@@ -66,35 +66,54 @@ public class AccessLastFM {
         }
         return matchList;
     }
-    
-    public static Document grabXML(URL url) {
-        Document responseXML = null;
+
+    public static String getResponsString(URL url) {
+        StringBuilder response = new StringBuilder();
         try {
-            LOGGER.log(Level.WARNING,"Response might be broken or unavailable");
-            URLConnection response = url.openConnection();
-            DocumentBuilderFactory docBuildFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docBuildFactory.newDocumentBuilder();
-            responseXML = docBuilder.parse(response.getInputStream());
+            LOGGER.log(Level.WARNING, "Response might be broken or unavailable");
+            URLConnection connection = url.openConnection();
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(
+                            connection.getInputStream()));
+            String inputLine;
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+
+            in.close();
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE,"URL is unreachable or broken",e);
-        } 
-        return responseXML;
-    }
-
-    private static String docToString(Document doc) {
-        StringWriter writer = new StringWriter();
-
-        DOMSource domSource = new DOMSource(doc);
-        StreamResult result = new StreamResult(writer);
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer transformer;
-        try {
-            transformer = tf.newTransformer();
-            transformer.transform(domSource, result);
-        } catch (TransformerException e) {
-            LOGGER.log(Level.SEVERE,"Document convertion failed",e);
+            LOGGER.log(Level.SEVERE, "URL is unreachable or broken", e);
         }
-        return writer.toString();
+        return response.toString();
     }
 
+//    public static Document grabXML(URL url) {
+//        Document responseXML = null;
+//        try {
+//            LOGGER.log(Level.WARNING,"Response might be broken or unavailable");
+//            URLConnection response = url.openConnection();
+//            DocumentBuilderFactory docBuildFactory = DocumentBuilderFactory.newInstance();
+//            DocumentBuilder docBuilder = docBuildFactory.newDocumentBuilder();
+//            responseXML = docBuilder.parse(response.getInputStream());
+//        } catch (Exception e) {
+//            LOGGER.log(Level.SEVERE,"URL is unreachable or broken",e);
+//        } 
+//        return responseXML;
+//    }
+//    private static String docToString(Document doc) {
+//        StringWriter writer = new StringWriter();
+//
+//        DOMSource domSource = new DOMSource(doc);
+//        StreamResult result = new StreamResult(writer);
+//        TransformerFactory tf = TransformerFactory.newInstance();
+//        Transformer transformer;
+//        try {
+//            transformer = tf.newTransformer();
+//            transformer.transform(domSource, result);
+//        } catch (TransformerException e) {
+//            LOGGER.log(Level.SEVERE,"Document convertion failed",e);
+//        }
+//        return writer.toString();
+//    }
 }

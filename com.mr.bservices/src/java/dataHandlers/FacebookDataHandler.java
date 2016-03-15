@@ -17,7 +17,7 @@ public class FacebookDataHandler {
     public static User setUserTaste(User user) {
         List<String> artistNameList = AccessFacebook.getArtistList(user);
         artistNameList.addAll(AccessFacebook.getRecentArtistList(user));
-        User tempUser = LastFMDataHandler.addUserTags(user, artistNameList);
+        User tempUser = LastFMDataHandler.addUserTagsFacebook(user, artistNameList);
         tempUser.setUserID(LastFMDataHandler.getNewUserID());
         return tempUser;
     }

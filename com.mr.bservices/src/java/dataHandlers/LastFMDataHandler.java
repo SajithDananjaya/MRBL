@@ -37,7 +37,9 @@ public class LastFMDataHandler {
 
     private static int currentTagID = 1;
     private static int currentUserID = 1;
-    private static List<Tag> newTags = new ArrayList<>();
+    private static boolean reInitiateGraph = false;
+    private static List<String> newUsers = new ArrayList<>();
+    private static HashMap<String, Integer> unknownTags = new HashMap<>();
     private static List<User> initialUsers = new ArrayList<>();
     private static HashMap<String, String> initialUsersInfo = new HashMap<>();
     private static HashMap<String, Tag> initailTags = new HashMap<>();
@@ -55,7 +57,7 @@ public class LastFMDataHandler {
         URL url = AccessLastFM.getURL("user.getFriends&"
                 + "user=" + GlobalParam.getLastFMUserName()
                 + "&limit=" + GlobalParam.getInitialUserCount());
-        Document userListXML = AccessLastFM.grabXML(url);
+        String userListXML = AccessLastFM.getResponsString(url);
         List<String> userList = AccessLastFM.extractPattern("<name>(.*?)</name>", userListXML, 4);
         for (String userName : userList) {
             System.out.println("Learning of user " + userName);
@@ -75,15 +77,15 @@ public class LastFMDataHandler {
         URL url = AccessLastFM.getURL("user.getTopArtists&"
                 + "user=" + userName + "&"
                 + "limit=" + GlobalParam.getArtistCountPerUser());
-        Document userArtitsList = AccessLastFM.grabXML(url);
+        String userArtitsList = AccessLastFM.getResponsString(url);
         List<String> artistNameList = AccessLastFM.extractPattern("<name>(.*?)</name>", userArtitsList, 4);
-        return addUserTags(tempUser, artistNameList);
+        return addUserTagsLastFM(tempUser, artistNameList);
     }
 
-    public static User addUserTags(User user, List<String> artistNameList) {
+    public static User addUserTagsLastFM(User user, List<String> artistNameList) {
         for (String artistName : artistNameList) {
             //System.out.println(artistName);
-            List<Tag> artistTags = getArtistInformation(artistName);
+            List<Tag> artistTags = getLastFMUserArtistInformation(artistName);
             for (Tag tag : artistTags) {
                 user.setMusicTaste(tag);
             }
@@ -91,13 +93,13 @@ public class LastFMDataHandler {
         return user;
     }
 
-    public static List<Tag> getArtistInformation(String artistName) {
+    public static List<Tag> getLastFMUserArtistInformation(String artistName) {
         if (!learnedArtists.containsKey(artistName)) {
             // System.out.println("Learning about "+artistName);
             URL url = AccessLastFM.getURL("artist.getTopTags&"
                     + "artist=" + artistName + "&"
                     + "limit=" + GlobalParam.getTagCountPerArtist());
-            Document artistTagListXML = AccessLastFM.grabXML(url);
+            String artistTagListXML = AccessLastFM.getResponsString(url);
             List<String> tagList = AccessLastFM.extractPattern("<name>(.*?)</name>", artistTagListXML, 4);
             Artist tempArtist = new Artist(artistName);
             for (String tagName : tagList) {
@@ -111,6 +113,64 @@ public class LastFMDataHandler {
             learnedArtists.put(artistName, tempArtist);
         }
         return learnedArtists.get(artistName).getArtistTags();
+    }
+
+    public static User addUserTagsFacebook(User user, List<String> artistNameList) {
+        for (String artistName : artistNameList) {
+            //System.out.println(artistName);
+            List<Tag> artistTags = getFBUserArtistInformation(artistName);
+            for (Tag tag : artistTags) {
+                user.setMusicTaste(tag);
+            }
+        }
+        if(reInitiateGraph){
+            expandUserGraph();
+        }
+        return user;
+    }
+
+    public static List<Tag> getFBUserArtistInformation(String artistName) {
+        if (!learnedArtists.containsKey(artistName)) {
+            // System.out.println("Learning about "+artistName);
+            URL url = AccessLastFM.getURL("artist.getTopTags&"
+                    + "artist=" + artistName + "&"
+                    + "limit=" + GlobalParam.getTagCountPerArtist());
+            String artistTagListXML = AccessLastFM.getResponsString(url);
+            List<String> tagList = AccessLastFM.extractPattern("<name>(.*?)</name>", artistTagListXML, 4);
+            Artist tempArtist = new Artist(artistName);
+            for (String tagName : tagList) {
+                if (!initailTags.containsKey(tagName)) {
+                    if (unknownTags.containsKey(tagName)) {
+                        int tagOccurance = unknownTags.get(tagName);
+                        if (tagOccurance >= GlobalParam.getLearningStartBound()) {
+                            Tag tempTag = new Tag(currentTagID, tagName);
+                            initailTags.put(tagName, tempTag);
+                            currentTagID++;
+                            tempArtist.addArtistTag(initailTags.get(tagName));
+                            reInitiateGraph = true;
+                        }
+                        unknownTags.replace(tagName, tagOccurance+1);
+                    } else {
+                        unknownTags.put(tagName, 1);
+                    }
+                } else {
+                    tempArtist.addArtistTag(initailTags.get(tagName));
+                }
+            }
+            learnedArtists.put(artistName, tempArtist);
+        }
+        return learnedArtists.get(artistName).getArtistTags();
+    }
+    
+    public static void expandUserGraph(){
+        
+        System.out.println("Learing about tags :");
+        
+        for(String tagName: unknownTags.keySet()){
+            if(unknownTags.get(tagName)>=GlobalParam.getLearningStartBound()){
+                System.out.println("Learning about : "+tagName);
+            }
+        }
     }
 
     public static void saveTagInforamtion() {

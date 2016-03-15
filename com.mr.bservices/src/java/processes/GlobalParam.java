@@ -178,6 +178,27 @@ public class GlobalParam {
         return Integer.parseInt(paramMap.get("initialUserCount"));
     }
     
+    /**
+     * @return the learningStartBound
+     */
+    public static int getLearningStartBound() {
+        return Integer.parseInt(paramMap.get("learningStartBound"));
+    }
+    
+    /**
+     * @return the tagLastFMURL
+     */
+    public static int getTagLastFMURL() {
+        return Integer.parseInt(paramMap.get("tagLastFMURL"));
+    }
+    
+    /**
+     * @return the userCountPerNewTag
+     */
+    public static int getUserCountPerNewTag() {
+        return Integer.parseInt(paramMap.get("userCountPerNewTag"));
+    }
+    
     
 
 }
