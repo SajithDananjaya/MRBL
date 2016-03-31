@@ -7,6 +7,8 @@ package objectStructures;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  *
@@ -16,7 +18,8 @@ public abstract class User {
 
     private int userID;
     private String userName;
-    private HashMap<Tag, Integer> musicTaste= new HashMap<>();;
+    private HashMap<Tag, Integer> musicTaste= new HashMap<>();
+    private List<String> userSongList = new ArrayList<>();
 
     public void setUserName(String userName) {
         this.userName = userName;
@@ -84,5 +87,12 @@ public abstract class User {
             System.out.println(t.getTagName()+" : "+musicTaste.get(t));
         }
     }
-
+    
+    public void addSong(String mbid){
+        userSongList.add(mbid);
+    }
+    
+    public List<String> getUserSongList(){
+        return this.userSongList;
+    }
 }

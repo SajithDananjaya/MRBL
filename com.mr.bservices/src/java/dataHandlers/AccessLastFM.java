@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import processes.GlobalParam;
 import processes.LogFactory;
 
+
 import java.net.URL;
 import java.util.List;
 import java.util.regex.*;
@@ -39,12 +40,12 @@ import javax.xml.transform.stream.StreamResult;
 public class AccessLastFM {
 
     private static final String BASE_URL = "https://" + GlobalParam.getBaseLastFMURL();
-    private static final String ACCESS_TOKEN = GlobalParam.getLastFMAPIKey();
+    //private static final String ACCESS_TOKEN = GlobalParam.getLastFMAPIKey();
     private static final Logger LOGGER = LogFactory.getNewLogger(AccessLastFM.class.getName());
 
+    
     public static URL getURL(String methodParam) {
-        LOGGER.log(Level.WARNING, "Response might be broken or unavailable");
-        String url = BASE_URL + methodParam + "&api_key=" + ACCESS_TOKEN;
+        String url = BASE_URL + methodParam + "&api_key=" + GlobalParam.getLastFMAPIKey();
         URL tempURL = null;
         try {
             tempURL = new URL(url);
@@ -54,15 +55,21 @@ public class AccessLastFM {
         return tempURL;
     }
 
-    public static List<String> extractPattern(String regPattern, String responsString, int tagNameLength) {
+    public static List<String> extractPattern(String regPattern, String responsString) {
         List<String> matchList = new ArrayList<>();
+        try {
+            Pattern searchPattern = Pattern.compile(regPattern);
+            Matcher patternMatcher = searchPattern.matcher(responsString);
 
-        Pattern searchPattern = Pattern.compile(regPattern);
-        Matcher patternMatcher = searchPattern.matcher(responsString);
-
-        while (patternMatcher.find()) {
-            String item = patternMatcher.group();
-            matchList.add(item.substring(tagNameLength + 2, (item.length() - (tagNameLength + 3))));
+            while (patternMatcher.find()) {
+                String item = patternMatcher.group();
+                String itemText = item.split(">")[1].split("<")[0];
+                if (itemText.length() > 0) {
+                    matchList.add(itemText);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.INFO, "Pattern matching failed");
         }
         return matchList;
     }
@@ -70,7 +77,6 @@ public class AccessLastFM {
     public static String getResponsString(URL url) {
         StringBuilder response = new StringBuilder();
         try {
-            LOGGER.log(Level.WARNING, "Response might be broken or unavailable");
             URLConnection connection = url.openConnection();
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(
@@ -87,6 +93,7 @@ public class AccessLastFM {
         }
         return response.toString();
     }
+    
 
 //    public static Document grabXML(URL url) {
 //        Document responseXML = null;

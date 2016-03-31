@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Random;
 
 /**
  *
@@ -32,6 +33,7 @@ public class GlobalParam {
         try{
             String textLine = "";
             while((textLine = file.readLine()) != null){
+                System.out.println(textLine);
                 String[] data = textLine.split(":");
                 paramMap.put(data[0], data[1]);
             }
@@ -40,6 +42,8 @@ public class GlobalParam {
         }
 
     }
+    
+    
     public static void initParameters(String filePath) {
         paramMap = new HashMap<>();
         BufferedReader file = getConfigFile(filePath);
@@ -52,7 +56,6 @@ public class GlobalParam {
         }catch(IOException e){
             System.err.println(e.toString());
         }
-
     }
 
     private static BufferedReader getConfigFile(String filePath) {
@@ -168,7 +171,10 @@ public class GlobalParam {
      * @return the lastFMAPIKey
      */
     public static String getLastFMAPIKey() {
-        return paramMap.get("lastFMAPIKey");
+        String[] apiKeys = paramMap.get("lastFMAPIKey").split(",");
+        Random r = new Random();
+        int index = (r.nextInt(apiKeys.length - 0) + 0);
+        return apiKeys[index];
     }
     
     /**
@@ -188,8 +194,8 @@ public class GlobalParam {
     /**
      * @return the tagLastFMURL
      */
-    public static int getTagLastFMURL() {
-        return Integer.parseInt(paramMap.get("tagLastFMURL"));
+    public static String getTagLastFMURL() {
+        return paramMap.get("tagLastFMURL");
     }
     
     /**
@@ -197,6 +203,27 @@ public class GlobalParam {
      */
     public static int getUserCountPerNewTag() {
         return Integer.parseInt(paramMap.get("userCountPerNewTag"));
+    }
+    
+    /**
+     * @return the numberOfTracksPerUser
+     */
+    public static int getNumberOfTracksPerUser() {
+        return Integer.parseInt(paramMap.get("numberOfTracksPerUser"));
+    }
+    
+    /**
+     * @return the facebookAppID
+     */
+    public static String getFacebookAppID() {
+        return paramMap.get("appInfoOne");
+    }
+    
+    /**
+     * @return the facebookAppSecret
+     */
+    public static String getFacebookAppSecret() {
+        return paramMap.get("appInfoTwo");
     }
     
     

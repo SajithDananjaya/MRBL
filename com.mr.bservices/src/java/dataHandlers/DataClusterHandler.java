@@ -135,7 +135,16 @@ public class DataClusterHandler {
 
     private int clusterCount(Instances dataPoints) {
         int totalDataCount = dataPoints.numInstances();
-        return (int) totalDataCount / 1;
+        return (int) Math.sqrt(totalDataCount);
     }
-
+    
+    public String[] getClusterList(){
+        return this.clusters;
+    }
+    
+    public void printCluster(){
+        for(String s: clusters){
+            System.out.println(s);
+        }
+    }
 }

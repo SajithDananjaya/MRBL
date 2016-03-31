@@ -13,11 +13,13 @@ public class UserFacebook extends User {
 
     private String name;
     private String accessToken;
+    private boolean relearnAvailable; 
 
     public UserFacebook(String userFacebookID, String name, String accessToken) {
         super.setUserName(userFacebookID);
         this.name = name;
         this.accessToken = accessToken;
+        relearnAvailable = false;
     }
 
     public String getName() {
@@ -26,6 +28,14 @@ public class UserFacebook extends User {
 
     public String getAccessToken() {
         return this.accessToken;
+    }
+    
+    public void setRelearnAvailable(boolean relearnAvailable){
+        this.relearnAvailable=relearnAvailable;
+    }
+    
+    public boolean getRelearnAvailable(){
+        return relearnAvailable;
     }
 
 }

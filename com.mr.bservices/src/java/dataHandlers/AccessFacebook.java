@@ -29,6 +29,7 @@ import com.restfb.types.Page;
 import com.restfb.FacebookClient;
 import com.restfb.Parameter;
 import com.restfb.DefaultFacebookClient;
+import com.restfb.FacebookClient.AccessToken;
 
 /**
  *
@@ -36,9 +37,17 @@ import com.restfb.DefaultFacebookClient;
  */
 public class AccessFacebook {
 
-    private static final String BASE_URL = GlobalParam.getBaseFBURL();
+    private static final String BASE_URL = "https://" + GlobalParam.getBaseFBURL();
     private static final Logger LOGGER
             = LogFactory.getNewLogger(AccessLastFM.class.getName());
+
+    public static String extendAccessToken(UserFacebook user) {
+        FacebookClient fbClient = new DefaultFacebookClient(user.getAccessToken(), 
+                Version.LATEST);
+        AccessToken extendedAccessToken = fbClient.obtainExtendedAccessToken(GlobalParam.getFacebookAppID()
+                , GlobalParam.getFacebookAppSecret());
+        return extendedAccessToken.getAccessToken();
+    }
 
     public static List<String> getArtistList(User user) {
         UserFacebook tempUser = ((UserFacebook) user);
@@ -48,15 +57,14 @@ public class AccessFacebook {
                 = new DefaultFacebookClient(tempUser.getAccessToken(), Version.LATEST);
         List<String> artistList = new ArrayList<>();
         Connection<Post> respons
-                = fbClient.fetchConnection(tempUser.getUserName() + "/Music", Post.class);
+                = fbClient.fetchConnection(tempUser.getUserName() + "/Music", Post.class,
+                        Parameter.with("limit", GlobalParam.getArtistCountPerUser()));
         for (List<Post> page : respons) {
             for (Post post : page) {
                 artistList.add(post.getName());
                 artistCount++;
             }
-            if (artistCount >= maxArtistCount) {
-                break;
-            }
+            break;
         }
         return artistList;
     }
@@ -67,13 +75,15 @@ public class AccessFacebook {
                 = new DefaultFacebookClient(tempUser.getAccessToken(), Version.LATEST);
         List<Post> musicActivities = new ArrayList<>();
         Connection<Post> respons
-                = fbClient.fetchConnection(tempUser.getUserName() + "/feed", Post.class);
+                = fbClient.fetchConnection(tempUser.getUserName() + "/feed", Post.class,
+                        Parameter.with("limit", GlobalParam.getPostCountPerUser()));
         for (List<Post> page : respons) {
             for (Post p : page) {
                 if (p.getStory() != null && p.getStory().contains(" listening to ")) {
                     musicActivities.add(p);
                 }
             }
+            break;
         }
         return extractArtistFromPost(musicActivities, user);
     }
@@ -98,20 +108,16 @@ public class AccessFacebook {
             } catch (Exception e) {
                 LOGGER.log(Level.INFO, "Post " + post.getId() + " dose not contains any aritist information");
             }
-            if (postCount >= maxPostCount) {
-                break;
-            }
         }
         return recentArtistList;
     }
 
-    public static String responsToString(URLConnection respons) {
+    private static String responsToString(URLConnection respons) {
         String stringRespons = "";
         try {
-            LOGGER.log(Level.WARNING, "Response out of the UTF-8 char set will");
             stringRespons = new Scanner(respons.getInputStream(), "UTF-8").useDelimiter("\\A").next();
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Resoponse converstion failed", e);
+            LOGGER.log(Level.SEVERE, "Resopons converstion failed", e);
         }
         return stringRespons;
     }
